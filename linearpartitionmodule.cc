@@ -75,8 +75,7 @@ public:
     get_basepair_prob(void)
     {
         PyArrayObject *res;
-        npy_intp dim, i, elemsize;
-        double *buf;
+        npy_intp dim;
         struct basepair_prob *bpp;
 
         dim = Pij.size();
@@ -89,10 +88,10 @@ public:
         assert(partition_return_descr->elsize == sizeof(struct basepair_prob));
         bpp = (struct basepair_prob *)PyArray_DATA(res);
 
-        for (auto& [key, value]: Pij) {
-            bpp->i = key.first - 1;
-            bpp->j = key.second - 1;
-            bpp->prob = value;
+        for (auto it = Pij.begin(); it != Pij.end(); ++it) {
+            bpp->i = it->first.first - 1;
+            bpp->j = it->first.second - 1;
+            bpp->prob = it->second;
             bpp++;
         }
 
