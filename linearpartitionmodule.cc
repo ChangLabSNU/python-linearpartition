@@ -87,6 +87,7 @@ public:
 
                 if (got != Pij.end()) {
                     buf[(i - 1) * seq_length + j - 1] = got->second;
+                    buf[(j - 1) * seq_length + i - 1] = got->second;
                 }
             }
         }
