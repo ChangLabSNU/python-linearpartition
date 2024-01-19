@@ -25,10 +25,12 @@ from setuptools import setup, Extension
 import numpy
 import os
 
+numpy_includes = [numpy.get_include()]
+
 lpartitionext = Extension(
             'linearpartition',
             ['linearpartitionmodule.cc'],
-            include_dirs=['LinearPartition/src', numpy.get_include()])
+            include_dirs=['LinearPartition/src'] + numpy_includes)
 
 if not os.path.exists('LinearPartition/src/LinearPartition.cpp'):
     print('''
@@ -63,4 +65,6 @@ setup(
         'Topic :: Scientific/Engineering :: Bio-Informatics',
     ],
     ext_modules=[lpartitionext],
+    setup_requires=['numpy'],
+    install_requires=['numpy'],
 )
