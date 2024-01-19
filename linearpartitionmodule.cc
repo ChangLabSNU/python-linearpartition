@@ -47,6 +47,14 @@ trap_fprintf(FILE *fp, const char *fmt, ...)
 #undef private
 #undef fprintf
 
+struct basepair_prob {
+    int32_t i;
+    int32_t j;
+    double prob;
+};
+
+static PyArray_Descr *partition_return_descr;
+
 class MyBeamCKYParser : public BeamCKYParser {
 public:
     MyBeamCKYParser(int beamsize, bool no_sharpturn, bool verbose,
@@ -67,29 +75,25 @@ public:
     get_basepair_prob(void)
     {
         PyArrayObject *res;
-        const npy_intp dims[2]={seq_length, seq_length};
+        npy_intp dim, i, elemsize;
         double *buf;
+        struct basepair_prob *bpp;
 
-        res = (PyArrayObject *)PyArray_SimpleNew(2, dims, NPY_DOUBLE);
+        dim = Pij.size();
+
+        res = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, &dim, partition_return_descr);
         if (res == NULL)
             return NULL;
+        Py_INCREF(partition_return_descr);
 
-        PyArray_FILLWBYTE(res, 0);
+        assert(partition_return_descr->elsize == sizeof(struct basepair_prob));
+        bpp = (struct basepair_prob *)PyArray_DATA(res);
 
-        buf = (double*)PyArray_DATA(res);
-
-        // Taken from bpp.cpp of LinearPartion
-        int turn = no_sharp_turn ? 3 : 0;
-        for (unsigned int i = 1; i <= seq_length; i++) {
-            for (unsigned int j = i + turn + 1; j <= seq_length; j++) {
-                pair<int, int> key = make_pair(i,j);
-                auto got = Pij.find(key);
-
-                if (got != Pij.end()) {
-                    buf[(i - 1) * seq_length + j - 1] = got->second;
-                    buf[(j - 1) * seq_length + i - 1] = got->second;
-                }
-            }
+        for (auto& [key, value]: Pij) {
+            bpp->i = key.first - 1;
+            bpp->j = key.second - 1;
+            bpp->prob = value;
+            bpp++;
         }
 
         return (PyObject *)res;
@@ -176,7 +180,19 @@ static struct PyModuleDef linearpartitionmodule = {
 PyMODINIT_FUNC
 PyInit_linearpartition(void)
 {
+
     import_array();
+
+    PyObject *op=Py_BuildValue("[(s, s), (s, s), (s, s)]",
+                               "i", "i4", "j", "i4", "prob", "f8");
+    if (op == NULL)
+        return NULL;
+
+    if (PyArray_DescrConverter(op, &partition_return_descr) == NPY_FAIL) {
+        Py_DECREF(op);
+        return NULL;
+    }
+    Py_DECREF(op);
 
     return PyModuleDef_Init(&linearpartitionmodule);
 }
