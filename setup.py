@@ -28,8 +28,7 @@ import os
 lpartitionext = Extension(
             'linearpartition',
             ['linearpartitionmodule.cc'],
-            include_dirs=['LinearPartition/src', numpy.get_include()],
-            extra_compile_args=["-O0"])
+            include_dirs=['LinearPartition/src', numpy.get_include()])
 
 if not os.path.exists('LinearPartition/src/LinearPartition.cpp'):
     print('''

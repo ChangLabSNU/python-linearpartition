@@ -63,7 +63,8 @@ public:
     {
     }
 
-    PyObject *get_basepair_prob(void)
+    PyObject *
+    get_basepair_prob(void)
     {
         PyArrayObject *res;
         const npy_intp dims[2]={seq_length, seq_length};
@@ -79,8 +80,8 @@ public:
 
         // Taken from bpp.cpp of LinearPartion
         int turn = no_sharp_turn ? 3 : 0;
-        for (int i = 1; i <= seq_length; i++) {
-            for (int j = i + turn + 1; j <= seq_length; j++) {
+        for (unsigned int i = 1; i <= seq_length; i++) {
+            for (unsigned int j = i + turn + 1; j <= seq_length; j++) {
                 pair<int, int> key = make_pair(i,j);
                 auto got = Pij.find(key);
 
@@ -96,7 +97,7 @@ public:
     double
     get_free_energy(void)
     {
-        State& viterbi = bestC[seq_length-1];
+        State& viterbi=bestC[seq_length - 1];
         return -kT * viterbi.alpha / 100.0;
     }
 };
@@ -104,7 +105,8 @@ public:
 PyDoc_STRVAR(linearpartition_partition_doc,
 "partition(seq)\n\
 \n\
-Return the MFE structure and free energy predicted by LinearPartition.");
+Return the base-pairing probability matrix and ensembl free energy \
+predicted by LinearPartition.");
 
 static PyObject *
 linearpartition_partition(PyObject *self, PyObject *args)
@@ -118,47 +120,21 @@ linearpartition_partition(PyObject *self, PyObject *args)
     /* LinearPartition arguments */
     int beamsize = 100;
     bool sharpturn = false;
-    bool is_verbose = false;
-    string bpp_file;
-    string bpp_prefix;
     bool pf_only = false;
     float bpp_cutoff = 0.0;
-    string forest_file;
 
     float MEA_gamma = 3.0;
-    bool mea = false;
-    bool MEA_bpseq = false;
-    string MEA_prefix;
     float ThreshKnot_threshold = 0.3;
-    bool ThreshKnot = false;
-    string ThresKnot_prefix;
-    bool fasta = false;
     int dangles = 2;
-
-    // SHAPE
-    string shape_file_path = "";
-
-    // variables for decoding
-    int num=0, total_len = 0;
-    unsigned long long total_states = 0;
-    double total_score = .0;
-    double total_time = .0;
-
-    int seq_index = 0;
-    string bpp_file_index = "";
-    string ThreshKnot_file_index = "";
-    string MEA_file_index = "";
-
     // End of LinearPartion parameters
+
     string rna_seq(seq);
-    PyObject *result;
 
     /* Call LinearPartition */
-    MyBeamCKYParser parser(beamsize, !sharpturn, is_verbose, bpp_file, bpp_file_index,
-                            pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index,
-                            MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index,
-                            shape_file_path, fasta, dangles);
-
+    MyBeamCKYParser parser(beamsize, !sharpturn, false, "", "",
+                           pf_only, bpp_cutoff, "", false, MEA_gamma, "",
+                           false, false, ThreshKnot_threshold, "",
+                           "", false, dangles);
     Py_BEGIN_ALLOW_THREADS
     parser.parse(rna_seq);
     Py_END_ALLOW_THREADS
