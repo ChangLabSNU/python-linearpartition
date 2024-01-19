@@ -1,0 +1,3 @@
+[submodule "LinearPartition"]
+	path = LinearPartition
+	url = git@github.com:LinearFold/LinearPartition.git
