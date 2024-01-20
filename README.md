@@ -20,8 +20,7 @@ pip install .
 
 ### Usage
 
-The module currently only has one function called `partition(seq)`, and
-it doesn't have any customizable options other than the defaults.
+The module currently only has one function called `partition(seq)`.
 The seq parameter should be an RNA sequence in *uppercase* letters,
 and any `T` should be converted to `U` before passing it to the function.
 
@@ -41,9 +40,34 @@ and any `T` should be converted to `U` before passing it to the function.
 22  4  17  0.996508
 ```
 
-The function returns a tuple with two elements. The first element is the
-predicted base pairing probability, and the second element is the free
-energy of the ensemble structure in kcal/mol.
+### Functions
+
+#### linearpartition.partition()
+
+The `linearpartition.partition` function is a Python C extension function that
+calls [LinearPartition](https://github.com/LinearFold/LinearPartition) to
+perform a linear partitioning operation and get the base pairing probability
+matrix.
+
+```python
+linearpartition.partition(seq, beamsize=100, dangles=2)
+```
+
+##### Parameters
+
+- `seq` (required): A string containing the RNA sequence to be analyzed.
+  The sequence must be in uppercase and only contain A, C, G, and U.
+  This parameter is required.
+- `beamsize` (optional): An integer representing the beam size for the
+  operation. Larger value requires more computational time and memory.
+  The default value is 100.
+- `dangles` (optional): An integer representing the number of dangles for
+  the partitioning operation. The default value is 2.
+
+##### Return Value
+
+This function returns a tuple containing the result of the partitioning
+operation and the free energy of the ensemble structure in kcal/mol.
 
 ### Author
 
