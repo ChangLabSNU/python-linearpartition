@@ -41,7 +41,7 @@ if not os.path.exists('LinearPartition/src/LinearPartition.cpp'):
 
 setup(
     name='linearpartition-unofficial',
-    version='0.1',
+    version='0.2',
     description='Python interface to LinearPartition, a linear-time RNA secondary structure prediction tool',
     author='Hyeshik Chang',
     author_email='hyeshik@snu.ac.kr',
