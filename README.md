@@ -50,7 +50,7 @@ perform a linear partitioning operation and get the base pairing probability
 matrix.
 
 ```python
-linearpartition.partition(seq, beamsize=100, dangles=2)
+linearpartition.partition(seq, mode='eterna', beamsize=100, dangles=2)
 ```
 
 ##### Parameters
@@ -58,6 +58,9 @@ linearpartition.partition(seq, beamsize=100, dangles=2)
 - `seq` (required): A string containing the RNA sequence to be analyzed.
   The sequence must be in uppercase and only contain A, C, G, and U.
   This parameter is required.
+- `mode` (optional): The name of free energy parameters to use. Use
+  `'vienna'` for Vienna RNA parameters, or `'eterna'` for EternaFold
+  parameters.
 - `beamsize` (optional): An integer representing the beam size for the
   operation. Larger value requires more computational time and memory.
   The default value is 100.
