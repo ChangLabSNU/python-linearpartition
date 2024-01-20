@@ -57,19 +57,7 @@ static PyArray_Descr *partition_return_descr;
 
 class MyBeamCKYParser : public BeamCKYParser {
 public:
-    MyBeamCKYParser(int beamsize, bool no_sharpturn, bool verbose,
-                    const string &bpp_file, const string &bpp_file_index,
-                    bool pf_only, float bpp_cutoff, const string &forest_file,
-                    bool mea, float MEA_gamma, const string &MEA_file_index,
-                    bool MEA_bpseq, bool ThreshKnot, float ThreshKnot_threshold,
-                    const string &ThreshKnot_file_index, const string &shape_file_path,
-                    bool fasta, int dangles)
-        : BeamCKYParser(beamsize, no_sharpturn, verbose, bpp_file, bpp_file_index,
-                        pf_only, bpp_cutoff, forest_file, mea, MEA_gamma, MEA_file_index,
-                        MEA_bpseq, ThreshKnot, ThreshKnot_threshold, ThreshKnot_file_index,
-                        shape_file_path, fasta, dangles)
-    {
-    }
+    using BeamCKYParser::BeamCKYParser;
 
     PyObject *
     get_basepair_prob(void)
@@ -113,32 +101,23 @@ Return the base-pairing probability matrix and ensembl free energy \
 predicted by LinearPartition.");
 
 static PyObject *
-linearpartition_partition(PyObject *self, PyObject *args)
+linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
 {
     const char *seq;
     Py_ssize_t len;
+    int beamsize=100, dangles=2;
+    static const char *kwlist[] = {"seq", "beamsize", "dangles", NULL};
 
-    if (!PyArg_ParseTuple(args, "s#:partition", &seq, &len))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s#|ii:partition", (char**)kwlist,
+                                     &seq, &len, &beamsize, &dangles))
         return NULL;
-
-    /* LinearPartition arguments */
-    int beamsize = 100;
-    bool sharpturn = false;
-    bool pf_only = false;
-    float bpp_cutoff = 0.0;
-
-    float MEA_gamma = 3.0;
-    float ThreshKnot_threshold = 0.3;
-    int dangles = 2;
-    // End of LinearPartion parameters
 
     string rna_seq(seq);
 
     /* Call LinearPartition */
-    MyBeamCKYParser parser(beamsize, !sharpturn, false, "", "",
-                           pf_only, bpp_cutoff, "", false, MEA_gamma, "",
-                           false, false, ThreshKnot_threshold, "",
-                           "", false, dangles);
+    MyBeamCKYParser parser(beamsize, true, false, "", "", false, 0.0, "",
+                           false, 3.0, "", false, false, 0.3, "", "", false,
+                           dangles);
     Py_BEGIN_ALLOW_THREADS
     parser.parse(rna_seq);
     Py_END_ALLOW_THREADS
@@ -156,8 +135,8 @@ linearpartition_partition(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef linearpartition_methods[] = {
-    {"partition",   linearpartition_partition,  METH_VARARGS,
-     linearpartition_partition_doc},
+    {"partition",   (PyCFunction)linearpartition_partition,
+     METH_VARARGS | METH_KEYWORDS, linearpartition_partition_doc},
     {NULL,          NULL} /* sentinel */
 };
 
