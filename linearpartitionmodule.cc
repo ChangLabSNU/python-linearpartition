@@ -193,13 +193,15 @@ static PyObject *
 linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
 {
     const char *seq, *mode="vienna";
-    int beamsize=100, dangles=2;
-    static const char *kwlist[] = {"seq", "mode", "beamsize", "dangles", NULL};
+    int beamsize=100, dangles=2, sharpturn=0;
+    float gamma=3.0, bpp_cutoff=0.0;
+    static const char *kwlist[] = {
+        "seq", "mode", "beamsize", "sharpturn", "cutoff", "gamma", "dangles", NULL};
     enum { ETERNA, VIENNA } mode_enum;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|sii:partition",
-                                     (char**)kwlist, &seq, &mode,
-                                     &beamsize, &dangles))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|sipffi:partition",
+                                     (char**)kwlist, &seq, &mode, &beamsize,
+                                     &sharpturn, &bpp_cutoff, &gamma, &dangles))
         return NULL;
 
     if (strcmp(mode, "eterna") == 0)
@@ -220,8 +222,8 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
     /* Call LinearPartition */
     switch (mode_enum) {
     case ETERNA: {
-        EternaBeamCKYParser parser(beamsize, true, false, "", "", false, 0.0,
-            "", true, 3.0, "", false, false, 0.3, "", "", false, dangles);
+        EternaBeamCKYParser parser(beamsize, !sharpturn, false, "", "", false, bpp_cutoff,
+            "", true, gamma, "", false, false, 0.3, "", "", false, dangles);
         Py_BEGIN_ALLOW_THREADS
         free_energy = parser.parse(rna_seq);
         Py_END_ALLOW_THREADS
@@ -234,8 +236,8 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
     }
 
     case VIENNA: {
-        ViennaBeamCKYParser parser(beamsize, true, false, "", "", false, 0.0,
-            "", true, 3.0, "", false, false, 0.3, "", "", false, dangles);
+        ViennaBeamCKYParser parser(beamsize, !sharpturn, false, "", "", false, bpp_cutoff,
+            "", true, gamma, "", false, false, 0.3, "", "", false, dangles);
         Py_BEGIN_ALLOW_THREADS
         free_energy = parser.parse(rna_seq);
         Py_END_ALLOW_THREADS
