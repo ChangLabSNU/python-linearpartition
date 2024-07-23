@@ -27,11 +27,13 @@ and any `T` should be converted to `U` before passing it to the function.
 ```python
 >>> import linearpartition as lp
 >>> seq = 'UGUCGGGGUUGGCUGUCUGACA'
->>> bpmtx, fe = lp.partition(seq)
->>> fe
+>>> pred = lp.partition(seq)
+>>> pred['free_energy']
 -7.216465644007023
+>>> pred['structure']
+'(((((((........)))))))'
 >>> import pandas as pd
->>> pd.DataFrame(bpmtx).sort_values('prob', ascending=False).head()
+>>> pd.DataFrame(pred['bpp']).sort_values('prob', ascending=False).head()
     i   j      prob
 19  3  18  0.999201
 18  2  19  0.998801
@@ -69,8 +71,9 @@ linearpartition.partition(seq, mode='eterna', beamsize=100, dangles=2)
 
 ##### Return Value
 
-This function returns a tuple containing the result of the partitioning
-operation and the free energy of the ensemble structure in kcal/mol.
+This function returns a dictionary containing the MEA structure,
+base-pairing probability matrix and free energy of the ensemble
+structure in kcal/mol from the result of the partitioning operation.
 
 ### Author
 

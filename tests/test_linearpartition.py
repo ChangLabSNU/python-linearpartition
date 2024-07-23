@@ -19,13 +19,15 @@ class TestLinearPartition(TestCase):
         (34, 39, 0.0122), (34, 40, 0.7858), (35, 39, 0.5950), (37, 44, 0.0001),
         (38, 43, 0.0001)]
     freeenergy1 = -36.0677
+    mea_structure = '((((((((((((((((.(((((.(((((.(((.(((...))))))))))).)))))))))))))))))))))'
 
     def test_1(self):
-        probmtx, freeenergy = partition(self.seq1)
-        for expected, actual in zip(self.probmtx1, sorted(probmtx.tolist())):
+        pred = partition(self.seq1)
+        for expected, actual in zip(self.probmtx1, sorted(pred['bpp'].tolist())):
             self.assertEqual(expected[:2], actual[:2])
             self.assertAlmostEqual(expected[2], actual[2], places=4)
-        self.assertAlmostEqual(freeenergy, self.freeenergy1, places=4)
+        self.assertAlmostEqual(pred['free_energy'], self.freeenergy1, places=4)
+        self.assertEqual(pred['structure'], self.mea_structure)
 
 if __name__ == '__main__':
     import unittest
