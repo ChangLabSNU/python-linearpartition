@@ -175,13 +175,6 @@ public:
     using LPE_BeamCKYParser::LPE_BeamCKYParser;
 
     GET_BASEPAIR_PROB
-
-    double
-    get_free_energy(void)
-    {
-        State& viterbi=bestC[seq_length - 1];
-        return viterbi.alpha;
-    }
 };
 
 class ViennaBeamCKYParser : public LPV_BeamCKYParser {
@@ -189,13 +182,6 @@ public:
     using LPV_BeamCKYParser::LPV_BeamCKYParser;
 
     GET_BASEPAIR_PROB
-
-    double
-    get_free_energy(void)
-    {
-        LPV_State& viterbi=bestC[seq_length - 1];
-        return -kT * viterbi.alpha / 100.0;
-    }
 };
 
 PyDoc_STRVAR(linearpartition_partition_doc,
@@ -238,13 +224,12 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
         EternaBeamCKYParser parser(beamsize, true, false, "", "", false, 0.0,
             "", true, 3.0, "", false, false, 0.3, "", "", false, dangles);
         Py_BEGIN_ALLOW_THREADS
-        parser.parse(rna_seq);
+        free_energy = parser.parse(rna_seq);
         Py_END_ALLOW_THREADS
 
         probmtx = parser.get_basepair_prob();
         if (probmtx == NULL)
             return NULL;
-        free_energy = parser.get_free_energy();
         mea_structure = parser.threshknot_file_index;
         break;
     }
@@ -253,13 +238,12 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
         ViennaBeamCKYParser parser(beamsize, true, false, "", "", false, 0.0,
             "", true, 3.0, "", false, false, 0.3, "", "", false, dangles);
         Py_BEGIN_ALLOW_THREADS
-        parser.parse(rna_seq);
+        free_energy = parser.parse(rna_seq);
         Py_END_ALLOW_THREADS
 
         probmtx = parser.get_basepair_prob();
         if (probmtx == NULL)
             return NULL;
-        free_energy = parser.get_free_energy();
         mea_structure = parser.threshknot_file_index;
         break;
     }
