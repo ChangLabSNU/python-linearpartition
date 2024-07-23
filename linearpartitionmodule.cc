@@ -142,46 +142,45 @@ struct basepair_prob {
 
 static PyArray_Descr *partition_return_descr;
 
-#define GET_BASEPAIR_PROB \
-    PyObject * \
-    get_basepair_prob(void) \
-    { \
-        PyArrayObject *res; \
-        npy_intp dim; \
-        struct basepair_prob *bpp; \
-    \
-        dim = Pij.size(); \
-    \
-        res = (PyArrayObject *)PyArray_SimpleNewFromDescr(1, &dim, partition_return_descr); \
-        if (res == NULL) \
-            return NULL; \
-        Py_INCREF(partition_return_descr); \
-    \
-        assert(partition_return_descr->elsize == sizeof(struct basepair_prob)); \
-        bpp = (struct basepair_prob *)PyArray_DATA(res); \
-    \
-        for (auto it = Pij.begin(); it != Pij.end(); ++it) { \
-            bpp->i = it->first.first - 1; \
-            bpp->j = it->first.second - 1; \
-            bpp->prob = it->second; \
-            bpp++; \
-        } \
-    \
-        return (PyObject *)res; \
-    }
-
-class EternaBeamCKYParser : public LPE_BeamCKYParser {
+template<typename BaseParser>
+class BeamCKYParserTemplate : public BaseParser {
 public:
-    using LPE_BeamCKYParser::LPE_BeamCKYParser;
+    using BaseParser::BaseParser; // Inherit constructors
 
-    GET_BASEPAIR_PROB
+    PyObject* get_basepair_prob(void) {
+        PyArrayObject* res;
+        npy_intp dim;
+        struct basepair_prob* bpp;
+
+        dim = this->Pij.size();
+
+        res = (PyArrayObject*)PyArray_SimpleNewFromDescr(1, &dim, partition_return_descr);
+        if (res == NULL)
+            return NULL;
+        Py_INCREF(partition_return_descr);
+
+        assert(partition_return_descr->elsize == sizeof(struct basepair_prob));
+        bpp = (struct basepair_prob*)PyArray_DATA(res);
+
+        for (auto it = this->Pij.begin(); it != this->Pij.end(); ++it) {
+            bpp->i = it->first.first - 1;
+            bpp->j = it->first.second - 1;
+            bpp->prob = it->second;
+            bpp++;
+        }
+
+        return (PyObject*)res;
+    }
 };
 
-class ViennaBeamCKYParser : public LPV_BeamCKYParser {
+class EternaBeamCKYParser : public BeamCKYParserTemplate<LPE_BeamCKYParser> {
 public:
-    using LPV_BeamCKYParser::LPV_BeamCKYParser;
+    using BeamCKYParserTemplate::BeamCKYParserTemplate; // Inherit constructors
+};
 
-    GET_BASEPAIR_PROB
+class ViennaBeamCKYParser : public BeamCKYParserTemplate<LPV_BeamCKYParser> {
+public:
+    using BeamCKYParserTemplate::BeamCKYParserTemplate; // Inherit constructors
 };
 
 PyDoc_STRVAR(linearpartition_partition_doc,
