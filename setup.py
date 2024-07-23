@@ -39,6 +39,16 @@ if not os.path.exists('LinearPartition/src/LinearPartition.cpp'):
 ##   git clone https://github.com/LinearPartition/LinearPartition.git
 ''')
 
+def patch_linearpartition_files(srcdir):
+    # Patch bpp.cpp to enable intercepting the MEA structure
+    bppcpp_file = os.path.join(srcdir, 'bpp.cpp')
+    content = open(bppcpp_file).read()
+    if '__mea_hook__' not in content:
+        with open(bppcpp_file, 'w') as fout:
+            fout.write(content.replace('(!bpseq)', '__mea_hook__'))
+
+patch_linearpartition_files('LinearPartition/src')
+
 setup(
     name='linearpartition-unofficial',
     version='0.2',

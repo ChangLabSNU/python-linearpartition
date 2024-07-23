@@ -36,10 +36,21 @@ trap_fprintf(FILE *fp, const char *fmt, ...)
     /* Block outputs to stderr */
     return 0;
 }
+int
+trap_printf(const char *fmt, ...)
+{
+    /* Block outputs to stderr */
+    return 0;
+}
 
 #define private protected
 #undef fprintf
 #define fprintf trap_fprintf
+#undef printf
+#define printf trap_printf
+
+// Intercept the MEA structure output
+#define __mea_hook__ (1) { threshknot_file_index = structure; } if (1)
 
 // Monkey patch LinearPartition symbols to allow double-linking of E and V
 
@@ -121,6 +132,7 @@ trap_fprintf(FILE *fp, const char *fmt, ...)
 #undef main
 #undef private
 #undef fprintf
+#undef printf
 
 struct basepair_prob {
     int32_t i;
@@ -218,12 +230,13 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
     string rna_seq(seq);
     PyObject *probmtx;
     double free_energy;
+    string mea_structure;
 
     /* Call LinearPartition */
     switch (mode_enum) {
     case ETERNA: {
         EternaBeamCKYParser parser(beamsize, true, false, "", "", false, 0.0,
-            "", false, 3.0, "", false, false, 0.3, "", "", false, dangles);
+            "", true, 3.0, "", false, false, 0.3, "", "", false, dangles);
         Py_BEGIN_ALLOW_THREADS
         parser.parse(rna_seq);
         Py_END_ALLOW_THREADS
@@ -232,12 +245,13 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
         if (probmtx == NULL)
             return NULL;
         free_energy = parser.get_free_energy();
+        mea_structure = parser.threshknot_file_index;
         break;
     }
 
     case VIENNA: {
         ViennaBeamCKYParser parser(beamsize, true, false, "", "", false, 0.0,
-            "", false, 3.0, "", false, false, 0.3, "", "", false, dangles);
+            "", true, 3.0, "", false, false, 0.3, "", "", false, dangles);
         Py_BEGIN_ALLOW_THREADS
         parser.parse(rna_seq);
         Py_END_ALLOW_THREADS
@@ -246,6 +260,7 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
         if (probmtx == NULL)
             return NULL;
         free_energy = parser.get_free_energy();
+        mea_structure = parser.threshknot_file_index;
         break;
     }
 
@@ -254,10 +269,39 @@ linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    PyObject *ret=Py_BuildValue("Od", probmtx, free_energy);
+    PyObject *ret=NULL, *py_free_energy=NULL, *py_mea_structure=NULL;
+    bool failed=true;
+
+    do {
+        ret = PyDict_New();
+        if (ret == NULL)
+            break;
+
+        py_free_energy = PyFloat_FromDouble(free_energy);
+        if (py_free_energy == NULL)
+            break;
+
+        py_mea_structure = PyUnicode_FromString(mea_structure.c_str());
+        if (py_mea_structure == NULL)
+            break;
+
+        PyDict_SetItemString(ret, "structure", py_mea_structure);
+        PyDict_SetItemString(ret, "free_energy", py_free_energy);
+        PyDict_SetItemString(ret, "bpp", probmtx);
+
+        failed = false;
+    } while (0);
+
+    Py_XDECREF(py_free_energy);
+    Py_XDECREF(py_mea_structure);
     Py_DECREF(probmtx);
 
-    return ret;
+    if (failed) {
+        Py_XDECREF(ret);
+        return NULL;
+    }
+    else
+        return ret;
 }
 
 static PyMethodDef linearpartition_methods[] = {
