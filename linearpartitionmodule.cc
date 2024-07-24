@@ -184,11 +184,12 @@ public:
 };
 
 PyDoc_STRVAR(linearpartition_partition_doc,
-"partition(seq)\n\
-\n\
-Return the base-pairing probability matrix and ensemble free energy \n \
-and the MEA structure (Maximum expected accuracy structure) for the RNA sequence seq \n\
-predicted by LinearPartition.");
+"partition(seq, mode='vienna', beamsize=100, sharpturn=False, cutoff=0.0,\n"
+"          gamma=3.0, dangles=2)\n"
+"\n"
+"Returns the base-pairing probability matrix, ensemble free energy and the\n"
+"Maximum Expected Accuracy (MEA) structure for the given RNA sequence\n"
+"`seq` predicted by LinearPartition.");
 
 static PyObject *
 linearpartition_partition(PyObject *self, PyObject *args, PyObject *kwds)
@@ -297,15 +298,7 @@ static PyMethodDef linearpartition_methods[] = {
 };
 
 PyDoc_STRVAR(module_doc,
-"CPython interface to LinearPartition\n"
-"partition(sequence, [beam_size=100], [update_stack=None], [update_terminal=None]) -> (bpp_matrix, free_energy, prob_vector)\n\n"
-"Compute base pairing probabilities and free energy of RNA sequence.\n\n"
-"Returns a tuple containing:\n"
-"  bpp_matrix: structured array with fields 'i', 'j', and 'prob'\n"
-"  free_energy: partition function free energy\n"
-"  prob_vector: array of summed probabilities for each nucleotide position \n"
-"  mea_structure : Maximum Expected Accuracy structure");
-
+"CPython interface to LinearPartition");
 
 static struct PyModuleDef linearpartitionmodule = {
     PyModuleDef_HEAD_INIT,
