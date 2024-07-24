@@ -183,10 +183,12 @@ public:
     using BeamCKYParserTemplate::BeamCKYParserTemplate; // Inherit constructors
 };
 
+
 PyDoc_STRVAR(linearpartition_partition_doc,
 "partition(seq)\n\
 \n\
-Return the base-pairing probability matrix and ensembl free energy \
+Return the base-pairing probability matrix and ensemble free energy \n \
+as well as the MEA (maximum expected accuracy) structure \n \
 predicted by LinearPartition.");
 
 static PyObject *
@@ -294,9 +296,15 @@ static PyMethodDef linearpartition_methods[] = {
      METH_VARARGS | METH_KEYWORDS, linearpartition_partition_doc},
     {NULL,          NULL} /* sentinel */
 };
-
 PyDoc_STRVAR(module_doc,
-"CPython interface to LinearPartition");
+"CPython interface to LinearPartition\n"
+"partition(sequence, [beam_size=100], [sharpturn = False], [cutoff = 0.0], [gamma=3.0]) \n"
+"-> {'structure': mea_structure, 'free_energy': free_energy, 'bpp': base_pair_probability matrix)\n"
+"Compute base pairing probabilities, free energy, and MEA of RNA sequence.\n\n"
+"Returns a tuple containing:\n"
+"  bpp_matrix: structured array with fields 'i', 'j', and 'prob'\n"
+"  free_energy: partition function free energy\n"
+"  mea_structure : Maximum Expected Accuracy structure");
 
 static struct PyModuleDef linearpartitionmodule = {
     PyModuleDef_HEAD_INIT,
